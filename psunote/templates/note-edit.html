@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block body %}
+
+<h3 class="my-2">Edit Note</h3>
+<form action="{{ url_for('note_edit', note_id=note.id) }}" method="POST">
+    {{ form.hidden_tag() }}
+    <div class="form-group my-3">
+        {{ form.title.label }}
+        {{ form.title(class_='form-control') }}
+    </div>
+    <div class="form-group my-3">
+        {{ form.description.label }}
+        {{ form.description(class_='form-control', rows=10) }}
+    </div>
+    <div class="form-group my-3">
+        {{ form.tags.label }} (comma-separated)
+        {{ form.tags(class_='form-control') }}
+    </div>
+    <button type="submit" class="btn btn-primary">Update Note</button>
+</form>
+
+<hr>
+
+{# Form for the delete button with a confirmation dialog #}
+<form action="{{ url_for('note_delete', note_id=note.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this note?');">
+    <button type="submit" class="btn btn-danger">Delete Note</button>
+</form>
+
+{% endblock %}
