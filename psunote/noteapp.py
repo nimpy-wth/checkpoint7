@@ -68,10 +68,11 @@ def note_edit(note_id):
     form = forms.NoteForm(obj=note)
 
     if form.validate_on_submit():
+        original_tags = set(note.tags)
         note.title = form.title.data
         note.description = form.description.data
-        
-        note.tags.clear() # Reset tags to handle updates
+
+        new_tags_list = []
         for tag_name in form.tags.data:
             tag = db.session.execute(
                 db.select(models.Tag).where(models.Tag.name == tag_name)
@@ -79,7 +80,17 @@ def note_edit(note_id):
             if not tag:
                 tag = models.Tag(name=tag_name)
                 db.session.add(tag)
-            note.tags.append(tag)
+            new_tags_list.append(tag)
+        
+        note.tags = new_tags_list
+        removed_tags = original_tags - set(new_tags_list)
+        db.session.flush()
+
+        for tag in removed_tags:
+            notes_with_tag_count = db.session.query(models.Note).filter(models.Note.tags.any(id=tag.id)).count()
+            if notes_with_tag_count == 0:
+                db.session.delete(tag)
+
         db.session.commit()
         return flask.redirect(flask.url_for("index"))
 
@@ -91,8 +102,15 @@ def note_edit(note_id):
 @app.route("/notes/<int:note_id>/delete", methods=["POST"])
 def note_delete(note_id):
     db = models.db
-    note = db.get_or_404(models.Note, note_id)
-    db.session.delete(note)
+    note_to_delete = db.get_or_404(models.Note, note_id)
+    tags_to_check = list(note_to_delete.tags)
+    db.session.delete(note_to_delete)
+
+    for tag in tags_to_check:
+        notes_with_tag_count = db.session.query(models.Note).filter(models.Note.tags.any(id=tag.id)).count()
+        if notes_with_tag_count == 0:
+            db.session.delete(tag)
+
     db.session.commit()
     return flask.redirect(flask.url_for("index"))
 
