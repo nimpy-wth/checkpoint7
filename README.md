@@ -35,7 +35,7 @@ Follow these steps to get the application running on your local machine.
 
 ```bash
 git clone https://github.com/nimpy-wth/checkpoint7.git
-cd <repository-directory>
+cd psunote
 ```
 
 ### 3. Create a Virtual Environment
